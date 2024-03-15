@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Graveyard.Utils;
+using System;
+using System.Data;
 
 
 public class EnemyAI : MonoBehaviour
@@ -13,6 +15,15 @@ public class EnemyAI : MonoBehaviour
     private States _currentState;
     private NavMeshAgent _navMeshAgent;
 
+    private float _attackingDistance = 2f;
+    private float _nextAttackTime = 0f;
+    private float _attackRateTime = 0f;
+
+    private float _nextCheckDirectionTime = 0f;
+    private float _checkDirectionDuration = 0.1f;
+    private Vector3 _lastPosition; 
+
+    public event Action OnEnemyAttacking;
     public bool IsRunning
     {
         get
@@ -46,6 +57,12 @@ public class EnemyAI : MonoBehaviour
     }
     private void Update()
     {
+        StateHandler();
+        MovementDirectionHandler();
+    }
+
+    private void StateHandler()
+    {
         switch (_currentState)
         {
             default:
@@ -53,14 +70,15 @@ public class EnemyAI : MonoBehaviour
                 _navMeshAgent.velocity = Vector3.zero;
                 break;
             case States.Chasing:
-                _navMeshAgent.SetDestination(MainCharacter.Instance.MainCharacterTransform.position);
-                ChangeFaceDirection(transform.position, MainCharacter.Instance.MainCharacterTransform.position);
+                ChasingTarget();
+                CheckCurrentState();
                 break;
             case States.Hurt:
                 _navMeshAgent.velocity = Vector3.zero;
                 break;
             case States.Attack:
-                _navMeshAgent.velocity = Vector3.zero;
+                AttackingTarget();
+                CheckCurrentState();
                 break;
             case States.Dead:
                 Destroy(_navMeshAgent);
@@ -69,12 +87,63 @@ public class EnemyAI : MonoBehaviour
             case States.Idle:
                 _navMeshAgent.velocity = Vector3.zero;
                 Destroy(_navMeshAgent);
-                Destroy(this); 
-            break;        
+                Destroy(this);
+            break;
         }
     }
 
-   
+    private void AttackingTarget()
+    {
+        if (Time.time > _nextAttackTime)
+        {
+            OnEnemyAttacking?.Invoke();
+            _nextAttackTime = Time.time + _attackRateTime;
+        }
+        
+    }
+
+    private void CheckCurrentState()
+    {
+        States newState = States.Chasing;
+        float distanceToMainCharacter = Vector3.Distance (transform.position, MainCharacter.Instance.MainCharacterTransform.position);
+
+        if (distanceToMainCharacter < _attackingDistance)
+        {
+            newState = States.Attack;
+        } 
+
+        if (newState != _currentState)
+        {
+            if (newState == States.Attack)
+            {
+                _navMeshAgent.ResetPath();
+            }
+            _currentState = newState;
+        }
+        
+    }
+
+    private void ChasingTarget()
+    {
+        _navMeshAgent.SetDestination(MainCharacter.Instance.MainCharacterTransform.position);
+    }
+
+    private void MovementDirectionHandler()
+    {
+        if (Time.time > _nextCheckDirectionTime)
+        {
+            if (IsRunning)
+            {
+                ChangeFaceDirection(_lastPosition, transform.position);
+            } 
+            else if (_currentState == States.Attack)
+            {
+                ChangeFaceDirection(transform.position, MainCharacter.Instance.MainCharacterTransform.position);
+            }
+            _lastPosition = transform.position;
+            _nextCheckDirectionTime = Time.time + _checkDirectionDuration;
+        }
+    }
     private void ChangeFaceDirection(Vector3 selfPosition, Vector3 targetPosition)
     {
         if (selfPosition.x > targetPosition.x)

@@ -6,7 +6,8 @@ using System;
 
 public class SkeletonVisual : MonoBehaviour
 {
-    public event Action OnEnemyAttacking;
+    //public event Action OnEnemyAttacking; закомментировано , т.к идет рефакторинг нанесения урона 
+    //урон будет наноситься по срабатыванию события в EnemyAI, будет включаться анимация и включаться коллайдер ренджи атаки
     public event Action OnEnemyAttacked;
     public event Action OnEnemyHurtFinished;
     public event Action OnEnemyWasBorn;
@@ -52,10 +53,10 @@ public class SkeletonVisual : MonoBehaviour
     {
         _animator.SetBool(IS_IDLE, true);
     }
-    public void EnemyAttack()
-    {
-        OnEnemyAttacking?.Invoke();  
-    }
+    //public void EnemyAttack()
+    //{
+    //    OnEnemyAttacking?.Invoke();  
+    //}
     public void EnemyWasBorn ()
     {
         OnEnemyWasBorn?.Invoke();

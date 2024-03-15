@@ -26,7 +26,7 @@ public class Skeleton : MonoBehaviour, IDamagable
     private void Start()
     {
         _visual.OnEnemyWasBorn += () => _enemyAI.StateChangerChaising();
-        _visual.OnEnemyAttacking += MainCharacter.Instance.ApplyDamage;
+        _enemyAI.OnEnemyAttacking += MainCharacter.Instance.ApplyDamage;
         _visual.OnEnemyAttacked += () => _enemyAI.StateChangerChaising();
         _visual.OnEnemyHurtFinished += () =>
         {
