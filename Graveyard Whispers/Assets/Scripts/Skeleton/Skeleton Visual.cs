@@ -4,13 +4,11 @@ using UnityEngine;
 using Unity.UI;
 using System;
 
+[RequireComponent (typeof(Animator))]
 public class SkeletonVisual : MonoBehaviour
 {
-    //public event Action OnEnemyAttacking; закомментировано , т.к идет рефакторинг нанесения урона 
-    //урон будет наноситься по срабатыванию события в EnemyAI, будет включаться анимация и включаться коллайдер ренджи атаки
-    public event Action OnEnemyAttacked;
-    public event Action OnEnemyHurtFinished;
-    public event Action OnEnemyWasBorn;
+    [SerializeField] private EnemyAI _enemyAI;
+    [SerializeField] private EnemyEntity _skeleton;
     
     private Animator _animator;
 
@@ -18,47 +16,28 @@ public class SkeletonVisual : MonoBehaviour
     private const string ATTACK = "Attack";
     private const string HURT = "Hurt";
     private const string IS_IDLE = "IsIdle";
+    private const string IS_RUNNING = "IsRun";
+    private const string CHAISING_SPEED_MULTIPLIER = "ChaisingSpeedMultiplier";
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
-        
+        _animator = GetComponent<Animator>(); 
     }
     private void Start()
     {
-        MainCharacter.Instance.OnMainCharacterDead += MainCharacter_OnMainCharacterDead;
+        _enemyAI.OnEnemyAttacking += OnAttackingAnimation;  
     }
-    
-    private void EnemyAttacked ()
+    private void Update()
     {
-        OnEnemyAttacked?.Invoke();
+        _animator.SetBool(IS_RUNNING, _enemyAI.IsRunning);
+        _animator.SetFloat(CHAISING_SPEED_MULTIPLIER, _enemyAI.GetRoamingAnimationSpeed());
     }
-    private void HurtFinished ()
+    private void OnDestroy()
     {
-        OnEnemyHurtFinished?.Invoke();
+        _enemyAI.OnEnemyAttacking -= OnAttackingAnimation;
     }
-    public void DestroyAnimation ()
-    {
-        _animator.SetBool(IS_DEAD, true); 
-    }
-    public void AttackAnimation ()
+    public void OnAttackingAnimation ()
     {
         _animator.SetTrigger(ATTACK);
-    }
-    public void HurtAnimation ()
-    {
-        _animator.SetTrigger(HURT);
-    }
-    private void MainCharacter_OnMainCharacterDead()
-    {
-        _animator.SetBool(IS_IDLE, true);
-    }
-    //public void EnemyAttack()
-    //{
-    //    OnEnemyAttacking?.Invoke();  
-    //}
-    public void EnemyWasBorn ()
-    {
-        OnEnemyWasBorn?.Invoke();
     }
 }

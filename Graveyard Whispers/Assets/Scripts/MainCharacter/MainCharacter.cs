@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[SelectionBase]
 public class MainCharacter : MonoBehaviour, IDamagable
 {
     public event Action OnMainCharacterDead;
@@ -22,7 +23,6 @@ public class MainCharacter : MonoBehaviour, IDamagable
     private float _movingSpeed = 4f;
     private float _minMovingSpeed = 0.1f;
     private bool _isRunning = false;
-    private int _healthPoints = 3;
 
     private void Awake()
     {
@@ -82,25 +82,17 @@ public class MainCharacter : MonoBehaviour, IDamagable
         return _isRunning;
     }
 
-    public void ApplyDamage()
+    public void TakeDamage(int damage)
     {
-        _healthPoints--;
-        Debug.Log($"PLAYER'S LIFE {_healthPoints}!");
+        //_healthPoints--;
+        //Debug.Log($"PLAYER'S LIFE {_healthPoints}!");
 
-        _visual.HurtAnimation();
+        //_visual.HurtAnimation();
 
-        if (_healthPoints == 0)
-            ApplyFatalDamage();
+        //if (_healthPoints == 0)
+        //    ApplyFatalDamage();
     }
-    public void ApplyFatalDamage()
-    {
-        Debug.Log($"PLAYER IS DEAD!");
-        _visual.DestroyAnimation();
 
-        DisableCollider();
-        InvokeDeadState();
-        Destroy(this);
-    }
     public void Attack()
     {
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
@@ -110,18 +102,10 @@ public class MainCharacter : MonoBehaviour, IDamagable
             IDamagable enemyOnHit = enemy.GetComponent<IDamagable>();
 
             if (enemyOnHit != null)
-                enemyOnHit.ApplyDamage();
+                enemyOnHit.TakeDamage(1);
             else
                 Debug.Log("NullRefExep");
         }
-    }
-    private void DisableCollider()
-    {
-        _collider.enabled = false;
-    }
-    private void InvokeDeadState()
-    {
-        OnMainCharacterDead?.Invoke();
     }
     private void OnDrawGizmosSelected()
     {

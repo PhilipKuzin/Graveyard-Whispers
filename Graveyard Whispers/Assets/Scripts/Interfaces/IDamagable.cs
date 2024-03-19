@@ -5,6 +5,5 @@ using UnityEngine;
 interface IDamagable
 {
     void Attack();
-    void ApplyDamage ();
-    void ApplyFatalDamage();
+    void TakeDamage (int damage);
 }
